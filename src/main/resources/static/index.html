@@ -1,0 +1,46 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test</title>
+</head>
+<body>
+<h1>Test WebSocket Spring Boot</h1>
+
+<input id="messageInput" placeholder="Scrie mesajul..." />
+<button id="sendBtn">Trimite</button>
+
+<ul id="messages"></ul>
+
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+<script>
+    // 1. Conectare la WebSocket
+    const socket = new SockJS('http://localhost:8080/ws');
+    const stompClient = Stomp.over(socket);
+
+    const messagesUl = document.getElementById('messages');
+    const sendBtn = document.getElementById('sendBtn');
+    const messageInput = document.getElementById('messageInput');
+
+    stompClient.connect({}, function(frame) {
+        console.log('Connected: ' + frame);
+
+        // 2. Abonare la /topic/messages
+        stompClient.subscribe('/topic/messages', function(message) {
+            const li = document.createElement('li');
+            li.textContent = message.body;
+            messagesUl.appendChild(li);
+        });
+    });
+
+    // 3. Trimite mesaj la /app/send
+    sendBtn.addEventListener('click', () => {
+        const msg = messageInput.value;
+        stompClient.send('/app/send', {}, msg);
+        messageInput.value = '';
+    });
+</script>
+</body>
+</html>
